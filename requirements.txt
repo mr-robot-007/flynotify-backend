@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+typing
+supabase
+python-dotenv
+pika
+pydantic
+pymongo
