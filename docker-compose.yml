@@ -22,7 +22,7 @@ services:
 
   consumer:
     build: .
-    command: /bin/sh -c "sleep 40 && python mail/consume_email_tasks.py"
+    command: /bin/sh -c "python mail/consume_email_tasks.py"
     volumes:
       - .:/app 
     depends_on:

@@ -83,7 +83,7 @@ def consume_email_tasks():
         except Exception as e:
             print(f"Connection attempt {attempt + 1} failed: {e}")
             attempt += 1
-            time.sleep(5)
+            time.sleep(6)
             if attempt == max_attempts:
                 print("Max attempts reached. Exiting.")
                 break
