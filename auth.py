@@ -24,7 +24,7 @@ async def supbase_getUser(jwt: str):
     try:
         print(jwt)
         response = supabase.auth.get_user(jwt)
-        print(response)
+        # print(response)
         return response
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid token")

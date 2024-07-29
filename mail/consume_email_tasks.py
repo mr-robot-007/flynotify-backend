@@ -47,20 +47,6 @@ def callback(ch, method, properties, body):
     send_email(email_data['to'], email_data['subject'], email_data['body'])
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
-# def consume_email_tasks():
-#     print(f"Connecting to RabbitMQ at {rabbitmq_host}:{rabbitmq_port}")
-#     connection = pika.BlockingConnection(pika.ConnectionParameters(rabbitmq_host,rabbitmq_port))
-#     channel = connection.channel()
-    
-#     # Declare the queue
-#     channel.queue_declare(queue='email_tasks')
-    
-#     # Set up subscription to the queue
-#     channel.basic_consume(queue='email_tasks', on_message_callback=callback)
-    
-#     print('Waiting for messages. To exit press CTRL+C')
-#     channel.start_consuming()
-
 
 def consume_email_tasks():
     print(f"Connecting to RabbitMQ at {rabbitmq_host}:{rabbitmq_port}")

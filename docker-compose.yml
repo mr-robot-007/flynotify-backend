@@ -8,10 +8,9 @@ services:
       - "5672:5672"
   
   app:
+    image: anujgusain/flynotify-backend-app:latest
     build: .
     command: uvicorn main:app --host 0.0.0.0 --port 8000
-    volumes:
-      - .:/app
     ports:
       - "8000:8000"
     depends_on:
@@ -21,10 +20,9 @@ services:
       - RABBITMQ_PORT=5672
 
   consumer:
+    image: anujgusain/flynotify-backend-consumer:latest
     build: .
-    command: /bin/sh -c "python mail/consume_email_tasks.py"
-    volumes:
-      - .:/app 
+    command: python mail/consume_email_tasks.py
     depends_on:
       - rabbitmq
     environment:
