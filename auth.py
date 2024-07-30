@@ -43,5 +43,4 @@ async def forgot_password(email: str):
         res = await supabase.auth.reset_password_email(email)
         return JSONResponse(status_code=200, content={"message": "Reset Link sent successfully"})
     except Exception as e:
-        raise HTTPException(status_code=400, detail=e.message)
-        return e
+        return JSONResponse(status_code=400, content={"message": "Email Rate limit exceeded"})
