@@ -13,6 +13,8 @@ Here're some of the project's best features:
 - FASTAPI
 - RABBITMQ
 - DOCKER
+- MONGODB
+- SUPABASE
 ## Prerequisites
 
 
