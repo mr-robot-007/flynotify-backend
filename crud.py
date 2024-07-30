@@ -1,4 +1,4 @@
-from models import FlightModel, NotificationModel,Item
+from models import FlightModel,Flight
 from re import sub
 from database import db
 from datetime import datetime
@@ -83,25 +83,13 @@ notification_data = [
     }
 ]
 
-# uri = "mongodb+srv://admin-anuj:Cqm3TkJWk65a0PKA@cluster0.tfrcerl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-# # Create a new client and connect to the server
-# client = MongoClient(uri, server_api=ServerApi('1'))
-# # Send a ping to confirm a successful connection
-# try:
-#     client.admin.command('ping')
-#     print("Pinged your deployment. You successfully connected to MongoDB!")
-# except Exception as e:
-#     print(e)
 
 
 
-# db = client['indigo_db']
-
-
-
+# Use a regex to insert a space between letters and numbers to format the flight ID
 def format_flight_id(flight_id: str) -> str:
-    # Use a regex to insert a space between letters and numbers
     return sub(r"([a-zA-Z])(\d)", r"\1 \2", flight_id.upper())
+
 
 async def fetch_all_flights():
     flights = []
@@ -110,7 +98,6 @@ async def fetch_all_flights():
         flight['id'] = flight['_id']
         flights.append(FlightModel(**flight))
     return flights
-    # return [FlightModel(**flight) for flight in flight_data]
 
 async def fetch_flight_by_id(flight_id: str):
     x = format_flight_id(flight_id)
@@ -122,23 +109,36 @@ async def fetch_flight_by_id(flight_id: str):
 
 
 
-async def fetch_all_notifications():
-    notifications = []
-    data = db.notifications.find()
+async def add_email_to_passenger_contacts(flight_id, new_email):
+    collection = db['flights']
+    # Find the document with the given flight_id
+    document = collection.find_one({"flight_id": flight_id})
     
-    for notification in data:
-        print(notification)
-        notification['id'] = notification['_id']
-        notifications.append(NotificationModel(**notification))
-    return notifications
+    if not document:
+        print("Flight not found.")
+        return
 
-async def fetch_notifications_by_flight_id(flight_id: str):
-    notifications = [notification for notification in notification_data if notification["flight_id"] == flight_id]
-    return [NotificationModel(**notification) for notification in notifications] if notifications else []
+    # Check if the email already exists in the passenger_contacts array
+    for contact in document["passenger_contacts"]:
+        if contact["value"] == new_email:
+            print("Email already exists.")
+            return JSONResponse(status_code=200, content={"detail": "Email Already Exists"})
+    
+    # Add the new email to the passenger_contacts array
+    result = collection.update_one(
+        {"_id": document["_id"]},
+        {"$push": {"passenger_contacts": {"mode": "email", "value": new_email}}}
+    )
+    if result.modified_count > 0:
+        print(f"Successfully added  new passenger for flightId: {flight_id}.")
+
+        return JSONResponse(status_code=200, content={"detail": "New passenger added successfully"})
+    else:
+        print("No changes made to the document.")
+        return JSONResponse(status_code=201, content={"detail": "Nothing to update."})
 
 
-
-async def update_flight(flight_id: str, data:Item):
+async def update_flight(flight_id: str, data:Flight):
     print('hii')
     print(data.scheduled_arrival)
     collection = db['flights']
@@ -204,3 +204,5 @@ async def push_notification(flightId,flight):
         email_data['to'] = email
         send_email_task(email_data)
     
+
+

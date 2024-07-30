@@ -8,7 +8,7 @@ import time
 from dotenv import load_dotenv
 
 
-# load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
 
 print("Starting consumer script...")  # Initial log to confirm script start
 # time.sleep(10)

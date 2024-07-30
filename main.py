@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException,Request, Depends
-from crud import fetch_all_flights, fetch_flight_by_id,fetch_all_notifications,fetch_notifications_by_flight_id,update_flight
+from crud import fetch_all_flights, fetch_flight_by_id,update_flight,add_email_to_passenger_contacts
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from models import FlightModel, NotificationModel,LoginRequest, Item
+from models import FlightModel,LoginRequest, Flight,PassengerContact,ForgotPasswordModel
+import re
 
-
-from auth import supabase_login,supbase_getUser,supabase_logout
+from auth import supabase_login,supbase_getUser,supabase_logout,forgot_password
 
 
 app = FastAPI()
@@ -25,13 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# @app.get('/insert')
-# async def insert():
-#     db.flights.insert_many(flight_data)
-#     return {"message": "Data inserted successfully"}
     
-
 
 
 
@@ -40,7 +34,7 @@ async def TokenValidationMiddleware(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
     #  Check if the requested path requires token validation
-    if request.url.path not in ["/flights","/logout"]:
+    if request.url.path not in ["/flights","/logout",re.compile(r"/flights/update/[^/]+$"),re.compile(r"/passengers/update/[^/]+$")]:
         return await call_next(request)
 
     authorization_header = request.headers.get('Authorization')
@@ -63,29 +57,6 @@ async def read_root():
 
 
 
-@app.get("/flights")
-async def get_flights():
-    # print('hi')
-    # return {"message":"HIIi"}
-    return await fetch_all_flights()
-
-@app.get("/flights/{flight_id}", response_model=FlightModel)
-async def get_flight(flight_id: str):
-    flight = await fetch_flight_by_id(flight_id)
-    if flight:
-        return flight
-    raise HTTPException(status_code=404, detail="Flight not found")
-
-@app.get("/notifications", response_model=list[NotificationModel])
-async def get_notifications():
-    return await fetch_all_notifications()
-
-@app.get("/notifications/{flight_id}", response_model=list[NotificationModel])
-async def get_notifications_by_flight(flight_id: str):
-    notifications = await fetch_notifications_by_flight_id(flight_id)
-    if notifications:
-        return notifications
-    raise HTTPException(status_code=404, detail="Notifications not found")
 
 
 @app.post('/login')
@@ -109,10 +80,34 @@ async def get_user(request: Request):
     except Exception as e:
         return e
 
+@app.post('/forgotpassword')
+async def forgotpassword(forgotpassword: ForgotPasswordModel):
+    return await forgot_password(forgotpassword.email)
+
+
+
+
+@app.get("/flights")
+async def get_flights():
+    return await fetch_all_flights()
+
+@app.get("/flights/{flight_id}", response_model=FlightModel)
+async def get_flight(flight_id: str):
+    flight = await fetch_flight_by_id(flight_id)
+    if flight:
+        return flight
+    raise HTTPException(status_code=404, detail="Flight not found")
+
+
 
 @app.post('/flights/update/{flight_id}')
-async def update_flight_status(flight_id: str, item: Item):
+async def update_flight_status(flight_id: str, item: Flight):
     return await update_flight(flight_id, item)
 
+
+
+@app.post('/passengers/update/{flight_id}')
+async def update_passengers(passenger_contact: PassengerContact):
+    return await add_email_to_passenger_contacts(passenger_contact.flightId, passenger_contact.email_address)
 
 

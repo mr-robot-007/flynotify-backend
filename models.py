@@ -12,6 +12,7 @@ class FlightModel(BaseModel):
     scheduled_arrival: str
     actual_departure: Optional[str] = None
     actual_arrival: Optional[str] = None
+    passenger_contacts: Optional[list] = None
 
     class Config:
         # This is to help Pydantic parse ObjectId from MongoDB
@@ -19,23 +20,24 @@ class FlightModel(BaseModel):
             ObjectId: str
         }
 
-class NotificationModel(BaseModel):
-    notification_id: str
-    flight_id: str
-    message: str
-    timestamp: str
-    method: str
-    recipient: str
 
 
 class LoginRequest(BaseModel):
     username: str
     password: str
 
-class Item(BaseModel):
+
+class Flight(BaseModel):
     flightId: str
     status: str | None = None
     arrival_gate:str
     departure_gate:str
     scheduled_arrival: str
     scheduled_departure: str
+
+class PassengerContact(BaseModel):
+    flightId: str
+    email_address: str
+
+class ForgotPasswordModel(BaseModel):
+    email:str
