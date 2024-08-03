@@ -13,6 +13,7 @@ class FlightModel(BaseModel):
     actual_departure: Optional[str] = None
     actual_arrival: Optional[str] = None
     passenger_contacts: Optional[list] = None
+    departure: Optional[str] = None
 
     class Config:
         # This is to help Pydantic parse ObjectId from MongoDB
@@ -21,6 +22,9 @@ class FlightModel(BaseModel):
         }
 
 
+class LocationModel(BaseModel):
+    value:str
+    label:str
 
 class LoginRequest(BaseModel):
     username: str
@@ -34,6 +38,7 @@ class Flight(BaseModel):
     departure_gate:str
     scheduled_arrival: str
     scheduled_departure: str
+    departure:str
 
 class PassengerContact(BaseModel):
     flightId: str
@@ -41,3 +46,10 @@ class PassengerContact(BaseModel):
 
 class ForgotPasswordModel(BaseModel):
     email:str
+
+
+class SearchModel(BaseModel):
+    keyword:str
+
+class FlightSearchModel(BaseModel):
+    loc:str

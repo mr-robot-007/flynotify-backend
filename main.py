@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException,Request, Depends
-from crud import fetch_all_flights, fetch_flight_by_id,update_flight,add_email_to_passenger_contacts
+from crud import fetch_all_flights, fetch_flight_by_id,update_flight,add_email_to_passenger_contacts,get_locations,insert_locations,search_flights_by_keyword
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from models import FlightModel,LoginRequest, Flight,PassengerContact,ForgotPasswordModel
+from models import FlightModel,LoginRequest, Flight,PassengerContact,ForgotPasswordModel,SearchModel,FlightSearchModel
 import re
 
 from auth import supabase_login,supbase_getUser,supabase_logout,forgot_password
@@ -25,6 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
     
 
 
@@ -34,7 +35,7 @@ async def TokenValidationMiddleware(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
     #  Check if the requested path requires token validation
-    if request.url.path not in ["/flights","/logout",re.compile(r"/flights/update/[^/]+$"),re.compile(r"/passengers/update/[^/]+$")]:
+    if request.url.path not in ["/logout",re.compile(r"/flights/update/[^/]+$"),re.compile(r"/passengers/update/[^/]+$")]:
         return await call_next(request)
 
     authorization_header = request.headers.get('Authorization')
@@ -91,6 +92,10 @@ async def forgotpassword(forgotpassword: ForgotPasswordModel):
 async def get_flights():
     return await fetch_all_flights()
 
+@app.post("/searchflights")
+async def search_flights(fightsearchmodel: FlightSearchModel):
+    return await search_flights_by_keyword(fightsearchmodel.loc)
+
 @app.get("/flights/{flight_id}", response_model=FlightModel)
 async def get_flight(flight_id: str):
     flight = await fetch_flight_by_id(flight_id)
@@ -111,3 +116,10 @@ async def update_passengers(passenger_contact: PassengerContact):
     return await add_email_to_passenger_contacts(passenger_contact.flightId, passenger_contact.email_address)
 
 
+@app.post('/locations')
+async def getLocations(searchmodel: SearchModel):
+    return await get_locations(searchmodel.keyword)
+
+@app.get('/pushlocations')
+async def getPushLocations():
+    return await insert_locations()

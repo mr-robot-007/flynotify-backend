@@ -1,9 +1,10 @@
-from models import FlightModel,Flight
+from models import FlightModel,Flight,LocationModel
 from re import sub
 from database import db
 from datetime import datetime
 from mail.publish_email_tasks import send_email_task
 from fastapi.responses import JSONResponse
+import re
 
 from pydantic import BaseModel
 # Mock data for flights
@@ -206,3 +207,62 @@ async def push_notification(flightId,flight):
     
 
 
+def insert_flights():
+    collection = db['flights']
+    for flight in flight_data:
+        collection.insert_one(flight)
+
+options = [
+  { "value": "Delhi", "label": "Delhi" },
+  { "value": "Dehradun", "label": "Dehradun" },
+  { "value": "New Delhi", "label": "New Delhi" },
+  { "value": "Chandigarh", "label": "Chandigarh" },
+  { "value": "Gujrat", "label": "Gujrat" },
+  { "value": "Gwalior", "label": "Gwalior" },
+  { "value": "Jaipur", "label": "Jaipur" },
+  { "value": "Kota", "label": "Kota" },
+  { "value": "Lucknow", "label": "Lucknow" },
+  { "value": "Mumbai", "label": "Mumbai" },
+  { "value": "Pune", "label": "Pune" },
+  { "value": "Rajasthan", "label": "Rajasthan" },
+  { "value": "Surat", "label": "Surat" },
+  { "value": "Udaipur", "label": "Udaipur" },
+  { "value": "Varanasi", "label": "Varanasi" },
+  { "value": "Vishakhapatnam", "label": "Vishakhapatnam" }
+]
+
+async def insert_locations():
+    collection = db['locations']
+    for location in options:
+        collection.insert_one(location)
+    return {"status": "success"}
+
+
+async def get_locations(keyword):
+    print(keyword)
+    collection = db['locations']
+    regex = re.compile(f".*{keyword}.*", re.IGNORECASE)
+    cursor = collection.find({"value": {"$regex": regex}},)
+    seen = set()
+    locations = []
+    for data in cursor:
+        location = LocationModel(**data)
+        if location.value not in seen:
+            seen.add(location.value)
+            locations.append(location)
+    print(locations)
+    return locations
+
+
+async def search_flights_by_keyword(loc):
+    collection = db['flights']
+    flights = []
+    regex = re.compile(f".*{loc}.*", re.IGNORECASE)
+    cursor = collection.find({"departure": {"$regex": regex}},)
+    seen = set()
+    for data in cursor:
+        flight = FlightModel(**data)
+        if data['flight_id'] not in seen:
+            seen.add(data['flight_id'])
+            flights.append(flight)
+    return flights
